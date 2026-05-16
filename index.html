@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CryptoExplode</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --accent: #f7c948;
+    --accent2: #ff6b35;
+    --accent3: #00d4aa;
+    --text: #f0f0f8;
+    --muted: #6b6b80;
+    --border: #2a2a38;
+    --glow: rgba(247,201,72,0.15);
+    --red: #ff4757;
+    --green: #00d4aa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(247,201,72,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(247,201,72,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+
+  @keyframes gridPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo span {
+    -webkit-text-fill-color: var(--accent3);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+  }
+
+  .user-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--bg);
+  }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── Balance Card ── */
+  .balance-card {
+    margin: 20px 20px 0;
+    background: linear-gradient(135deg, #1a1a24 0%, #0f0f1a 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .balance-card::before {
+    content: '₿';
+    position: absolute;
+    right: -10px; top: -20px;
+    font-size: 120px;
+    color: rgba(247,201,72,0.04);
+    font-family: 'Bebas Neue', sans-serif;
+    pointer-events: none;
+  }
+
+  .balance-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .balance-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 2px;
+    line-height: 1;
+    margin: 8px 0;
+    background: linear-gradient(135deg, var(--accent) 0%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .balance-sub {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .balance-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .balance-stat .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .streak-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--accent2), #ff8c42);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── Nav Tabs ── */
+  .nav-tabs {
+    display: flex;
+    margin: 20px 20px 0;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .nav-tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-tab.active {
+    background: linear-gradient(135deg, var(--accent), #ffd700);
+    color: var(--bg);
+    box-shadow: 0 4px 16px rgba(247,201,72,0.3);
+  }
+
+  /* ── Content ── */
+  .content {
+    flex: 1;
+    padding: 16px 20px 100px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* ── Section Title ── */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* ── Game Cards ── */
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-card:hover, .game-card:active {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(247,201,72,0.12);
+  }
+
+  .game-card-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .game-card-accent.gold { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .game-card-accent.teal { background: linear-gradient(90deg, var(--accent3), #0099ff); }
+  .game-card-accent.red  { background: linear-gradient(90deg, var(--red), var(--accent2)); }
+
+  .game-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .game-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .game-icon.gold  { background: rgba(247,201,72,0.12); border: 1px solid rgba(247,201,72,0.2); }
+  .game-icon.teal  { background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.2); }
+  .game-icon.red   { background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.2); }
+
+  .game-info { flex: 1; }
+
+  .game-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 3px;
+  }
+
+  .game-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .game-reward {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .reward-amount {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .reward-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .game-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .game-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-live { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+  .badge-daily { background: rgba(0,212,170,0.15); color: var(--green); border: 1px solid rgba(0,212,170,0.3); }
+  .badge-new  { background: rgba(247,201,72,0.15); color: var(--accent); border: 1px solid rgba(247,201,72,0.3); }
+
+  .game-players {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── Play Button ── */
+  .btn-play {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), #ffd700);
+    color: var(--bg);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .btn-play:hover { transform: scale(1.02); box-shadow: 0 6px 24px rgba(247,201,72,0.4); }
+  .btn-play:active { transform: scale(0.98); }
+
+  /* ── Learn Tab ── */
+  .learn-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .learn-card:hover { border-color: var(--accent3); box-shadow: 0 4px 20px rgba(0,212,170,0.1); }
+
+  .learn-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,153,255,0.1));
+    border: 1px solid rgba(0,212,170,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .learn-info { flex: 1; }
+  .learn-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .learn-sub { font-size: 11px; color: var(--muted); }
+
+  .learn-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .progress-ring {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--accent3);
+    font-family: 'Space Mono', monospace;
+    position: relative;
+  }
+
+  /* ── Leaderboard Tab ── */
+  .leaderboard-header {
+    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .countdown {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .countdown-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .prize-pool {
+    text-align: right;
+  }
+
+  .prize-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .prize-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+  }
+
+  .lb-row.me {
+    border-color: var(--accent);
+    background: rgba(247,201,72,0.05);
+    box-shadow: 0 4px 20px rgba(247,201,72,0.1);
+  }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .lb-rank.top1 { color: var(--accent); }
+  .lb-rank.top2 { color: #c0c0c0; }
+  .lb-rank.top3 { color: #cd7f32; }
+
+  .lb-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .lb-username { flex: 1; font-weight: 600; font-size: 14px; }
+  .lb-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* ── Mini Game ── */
+  .game-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+  }
+
+  .game-overlay.open { display: flex; }
+
+  .game-container {
+    width: 100%;
+    max-width: 390px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px) scale(0.95); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .game-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .game-close {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .game-body { padding: 24px; }
+
+  /* Crypto Price Game */
+  .price-display {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .price-coin {
+    font-size: 40px;
+    margin-bottom: 8px;
+    animation: coinBounce 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes coinBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-6px); }
+  }
+
+  .price-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .price-current {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 8px 0;
+  }
+
+  .price-question {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .guess-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .guess-btn {
+    padding: 20px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-weight: 700;
+    font-size: 22px;
+  }
+
+  .guess-btn.up:hover {
+    border-color: var(--green);
+    background: rgba(0,212,170,0.1);
+    box-shadow: 0 4px 20px rgba(0,212,170,0.2);
+    transform: scale(1.04);
+  }
+
+  .guess-btn.down:hover {
+    border-color: var(--red);
+    background: rgba(255,71,87,0.1);
+    box-shadow: 0 4px 20px rgba(255,71,87,0.2);
+    transform: scale(1.04);
+  }
+
+  .guess-btn-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .guess-btn.up .guess-btn-label { color: var(--green); }
+  .guess-btn.down .guess-btn-label { color: var(--red); }
+
+  /* Result */
+  .result-display {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .result-display.show { display: block; }
+
+  .result-icon { font-size: 64px; margin-bottom: 12px; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .result-reward {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  /* ── Referral Section ── */
+  .referral-card {
+    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .referral-card::before {
+    content: '';
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(247,201,72,0.1), transparent);
+  }
+
+  .referral-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 12px;
+  }
+
+  .referral-link-text {
+    flex: 1;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .copy-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:active { transform: scale(0.95); }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(10,10,15,0.95);
+    border-top: 1px solid var(--border);
+    padding: 8px 20px 16px;
+    display: flex;
+    justify-content: space-around;
+    backdrop-filter: blur(20px);
+    z-index: 10;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+
+  .nav-item.active { color: var(--accent); }
+  .nav-item-icon { font-size: 22px; }
+  .nav-item-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 200;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">Crypto<span>Explode</span></div>
+    <div class="user-badge">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-name" id="userName">Player</div>
+    </div>
+  </div>
+
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-label">Total Balance</div>
+    <div class="balance-amount" id="balanceDisplay">0.0000</div>
+    <div class="balance-sub">
+      <div class="balance-stat">
+        <div class="dot"></div>
+        <span id="sessionEarned">+0.0000 today</span>
+      </div>
+      <div class="streak-badge">🔥 <span id="streakCount">0</span>d streak</div>
+    </div>
+  </div>
+
+  <!-- Nav Tabs -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('games', this)">🎮 Games</div>
+    <div class="nav-tab" onclick="switchTab('learn', this)">📚 Learn</div>
+    <div class="nav-tab" onclick="switchTab('rank', this)">🏆 Ranking</div>
+    <div class="nav-tab" onclick="switchTab('earn', this)">💰 Earn</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content" id="content">
+    <!-- Games Tab (default) -->
+    <div id="tab-games">
+      <div class="section-title">🎯 Live Tournaments</div>
+
+      <div class="game-card" onclick="openGame('priceGuess')">
+        <div class="game-card-accent gold"></div>
+        <div class="game-card-header">
+          <div class="game-icon gold">₿</div>
+          <div class="game-info">
+            <div class="game-name">Crypto Price Oracle</div>
+            <div class="game-desc">Predict BTC price in 60 seconds. Up or down?</div>
+          </div>
+          <div class="game-reward">
+            <div class="reward-amount">+0.001</div>
+            <div class="reward-label">BTC/win</div>
+          </div>
+        </div>
+        <div class="game-footer">
+          <span class="game-badge badge-live">● Live</span>
+          <span class="game-players">🧑 1,247 playing</span>
+        </div>
+        <button class="btn-play">⚡ Play Now</button>
+      </div>
+
+      <div class="game-card" onclick="openGame('quiz')">
+        <div class="game-card-accent teal"></div>
+        <div class="game-card-header">
+          <div class="game-icon teal">🧠</div>
+          <div class="game-info">
+            <div class="game-name">Crypto Quiz Blitz</div>
+            <div class="game-desc">10 questions. 10 seconds each. Big rewards.</div>
+          </div>
+          <div class="game-reward">
+            <div class="reward-amount">+0.005</div>
+            <div class="reward-label">ETH/win</div>
+          </div>
+        </div>
+        <div class="game-footer">
+          <span class="game-badge badge-daily">Daily</span>
+          <span class="game-players">🧑 892 playing</span>
+        </div>
+        <button class="btn-play" style="background: linear-gradient(135deg, var(--accent3), #0099ff); color: #fff;">⚡ Play Now</button>
+      </div>
+
+      <div class="game-card" onclick="openGame('portfolio')">
+        <div class="game-card-accent red"></div>
+        <div class="game-card-header">
+          <div class="game-icon red">🚀</div>
+          <div class="game-info">
+            <div class="game-name">Moonshot Portfolio</div>
+            <div class="game-desc">Build a virtual $1000 portfolio. Best ROI wins.</div>
+          </div>
+          <div class="game-reward">
+            <div class="reward-amount">+0.05</div>
+            <div class="reward-label">BNB/top 3</div>
+          </div>
+        </div>
+        <div class="game-footer">
+          <span class="game-badge badge-new">✨ New</span>
+          <span class="game-players">🧑 304 playing</span>
+        </div>
+        <button class="btn-play" style="background: linear-gradient(135deg, var(--red), var(--accent2)); color: #fff;">⚡ Play Now</button>
+      </div>
+    </div>
+
+    <!-- Learn Tab -->
+    <div id="tab-learn" style="display:none">
+      <div class="section-title">📖 Crypto Basics</div>
+
+      <div class="learn-card">
+        <div class="learn-icon">₿</div>
+        <div class="learn-info">
+          <div class="learn-title">What is Bitcoin?</div>
+          <div class="learn-sub">5 min read · 50 USDT reward</div>
+        </div>
+        <div class="learn-progress">
+          <div class="progress-ring">100%</div>
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <div class="learn-icon">Ξ</div>
+        <div class="learn-info">
+          <div class="learn-title">Ethereum & Smart Contracts</div>
+          <div class="learn-sub">7 min read · 100 USDT reward</div>
+        </div>
+        <div class="learn-progress">
+          <div class="progress-ring" style="border-top-color: var(--accent)">60%</div>
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <div class="learn-icon">🔐</div>
+        <div class="learn-info">
+          <div class="learn-title">Wallets & Private Keys</div>
+          <div class="learn-sub">6 min read · 75 USDT reward</div>
+        </div>
+        <div class="learn-progress">
+          <div class="progress-ring" style="border-top-color: var(--muted)">0%</div>
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <div class="learn-icon">📊</div>
+        <div class="learn-info">
+          <div class="learn-title">Reading Price Charts</div>
+          <div class="learn-sub">8 min read · 150 USDT reward</div>
+        </div>
+        <div class="learn-progress">
+          <div class="progress-ring" style="border-top-color: var(--muted)">0%</div>
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <div class="learn-icon">🌊</div>
+        <div class="learn-info">
+          <div class="learn-title">DeFi Explained Simply</div>
+          <div class="learn-sub">10 min read · 200 USDT reward</div>
+        </div>
+        <div class="learn-progress">
+          <div class="progress-ring" style="border-top-color: var(--muted)">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ranking Tab -->
+    <div id="tab-rank" style="display:none">
+      <div class="leaderboard-header">
+        <div>
+          <div class="countdown-label">Tournament Ends In</div>
+          <div class="countdown" id="countdown">23:59:47</div>
+        </div>
+        <div class="prize-pool">
+          <div class="prize-amount">1.5 BTC</div>
+          <div class="prize-label">Prize Pool</div>
+        </div>
+      </div>
+
+      <div class="section-title">🏆 Top Players</div>
+
+      <div id="leaderboard"></div>
+    </div>
+
+    <!-- Earn Tab -->
+    <div id="tab-earn" style="display:none">
+      <div class="section-title">💎 Referral Program</div>
+
+      <div class="referral-card">
+        <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Invite Friends, Earn Crypto</div>
+        <div style="font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 4px;">Get <strong style="color:var(--accent)">10%</strong> of all rewards your invitees earn. Forever.</div>
+        <div class="referral-link">
+          <div class="referral-link-text" id="refLink">t.me/CryptoExplodeBot?start=ref_loading</div>
+          <button class="copy-btn" onclick="copyRef()">COPY</button>
+        </div>
+        <div style="margin-top: 12px; display:flex; gap: 16px;">
+          <div>
+            <div style="font-family:'Space Mono',monospace; font-size:20px; font-weight:700; color:var(--accent)" id="refCount">0</div>
+            <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px">Invited</div>
+          </div>
+          <div>
+            <div style="font-family:'Space Mono',monospace; font-size:20px; font-weight:700; color:var(--green)" id="refEarned">0.0000</div>
+            <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px">Earned</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">⭐ Telegram Stars</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; text-align:center; cursor:pointer;" onclick="buyStars(50)">
+          <div style="font-size:28px; margin-bottom:6px;">⭐</div>
+          <div style="font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--accent)">50 Stars</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Entry boost × 2</div>
+          <button class="btn-play" style="margin-top:10px; padding:8px;">Buy</button>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--accent); border-radius:14px; padding:16px; text-align:center; cursor:pointer; box-shadow:0 4px 20px rgba(247,201,72,0.15);" onclick="buyStars(200)">
+          <div style="font-size:28px; margin-bottom:6px;">🌟</div>
+          <div style="font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--accent)">200 Stars</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">VIP access + × 5</div>
+          <div style="font-size:9px; background:var(--accent); color:var(--bg); border-radius:4px; padding:2px 6px; margin-top:4px; font-weight:800;">BEST VALUE</div>
+          <button class="btn-play" style="margin-top:6px; padding:8px;">Buy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('games', null, this)">
+    <div class="nav-item-icon">🎮</div>
+    <div class="nav-item-label">Games</div>
+  </div>
+  <div class="nav-item" onclick="switchTab('learn', null, this)">
+    <div class="nav-item-icon">📚</div>
+    <div class="nav-item-label">Learn</div>
+  </div>
+  <div class="nav-item" onclick="switchTab('rank', null, this)">
+    <div class="nav-item-icon">🏆</div>
+    <div class="nav-item-label">Ranking</div>
+  </div>
+  <div class="nav-item" onclick="switchTab('earn', null, this)">
+    <div class="nav-item-icon">💰</div>
+    <div class="nav-item-label">Earn</div>
+  </div>
+</div>
+
+<!-- Game Overlay: Price Guess -->
+<div class="game-overlay" id="gameOverlay">
+  <div class="game-container">
+    <div class="game-topbar">
+      <div style="font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:1px" id="gameTitle">Price Oracle</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="font-family:'Space Mono',monospace; font-size:13px; color:var(--accent)" id="gameTimer">60s</div>
+        <button class="game-close" onclick="closeGame()">✕ Close</button>
+      </div>
+    </div>
+    <div class="game-body" id="gameBody">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+// ── State ──
+const state = {
+  balance: parseFloat(localStorage.getItem('balance') || '0'),
+  sessionEarned: 0,
+  streak: parseInt(localStorage.getItem('streak') || '3'),
+  refs: parseInt(localStorage.getItem('refs') || '5'),
+  refEarned: parseFloat(localStorage.getItem('refEarned') || '0.0012'),
+  userId: null,
+  username: 'Player',
+};
+
+// ── Telegram Init ──
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0a0a0f');
+  tg.setBackgroundColor('#0a0a0f');
+
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    state.userId = user.id;
+    state.username = user.first_name || user.username || 'Player';
+  }
+}
+
+// ── Update UI from state ──
+function updateUI() {
+  document.getElementById('userName').textContent = state.username.slice(0, 8);
+  document.getElementById('userAvatar').textContent = state.username[0]?.toUpperCase() || '?';
+  document.getElementById('balanceDisplay').textContent = state.balance.toFixed(4);
+  document.getElementById('sessionEarned').textContent = `+${state.sessionEarned.toFixed(4)} today`;
+  document.getElementById('streakCount').textContent = state.streak;
+  document.getElementById('refLink').textContent = `t.me/CryptoExplodeBot?start=ref_${state.userId || '000000'}`;
+  document.getElementById('refCount').textContent = state.refs;
+  document.getElementById('refEarned').textContent = state.refEarned.toFixed(4);
+}
+
+// ── Tab switching ──
+let activeTab = 'games';
+function switchTab(tab, tabEl, navEl) {
+  document.getElementById('tab-' + activeTab).style.display = 'none';
+  document.getElementById('tab-' + tab).style.display = 'block';
+  activeTab = tab;
+
+  // Tab pills
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+
+  // Bottom nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+
+  if (tab === 'rank') renderLeaderboard();
+}
+
+// ── Leaderboard ──
+const lb_data = [
+  { name: 'CryptoKing_X', score: 2.4821, color: '#f7c948' },
+  { name: 'SatoshiGhost', score: 1.9340, color: '#e0e0e0' },
+  { name: 'MoonTrader99', score: 1.6120, color: '#cd7f32' },
+  { name: 'ETHwizard', score: 1.3880, color: '#6b6b80' },
+  { name: 'DiamondHands_', score: 1.1240, color: '#6b6b80' },
+  { name: 'AltcoinQueen', score: 0.9870, color: '#6b6b80' },
+  { name: 'DeFi_Master', score: 0.8410, color: '#6b6b80' },
+  { name: 'BlockchainBro', score: 0.7220, color: '#6b6b80' },
+  { name: state.username, score: state.balance || 0.0120, color: '#f7c948', isMe: true },
+];
+
+function renderLeaderboard() {
+  const sorted = [...lb_data].sort((a,b) => b.score - a.score);
+  const el = document.getElementById('leaderboard');
+  el.innerHTML = sorted.map((p, i) => {
+    const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+    return `
+      <div class="lb-row ${p.isMe ? 'me' : ''}">
+        <div class="lb-rank ${rankClass}">${rankEmoji}</div>
+        <div class="lb-avatar" style="background:${p.color}">${p.name[0]}</div>
+        <div class="lb-username">${p.name}${p.isMe ? ' 👈 You' : ''}</div>
+        <div class="lb-score">${p.score.toFixed(4)}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Countdown ──
+let countdownSec = 86387; // ~24h
+function tickCountdown() {
+  const h = String(Math.floor(countdownSec / 3600)).padStart(2,'0');
+  const m = String(Math.floor((countdownSec % 3600) / 60)).padStart(2,'0');
+  const s = String(countdownSec % 60).padStart(2,'0');
+  const el = document.getElementById('countdown');
+  if (el) el.textContent = `${h}:${m}:${s}`;
+  if (countdownSec > 0) countdownSec--;
+}
+setInterval(tickCountdown, 1000);
+
+// ── Games ──
+let currentGame = null;
+let gameTimerInterval = null;
+let gameTimeLeft = 60;
+
+const games = {
+  priceGuess: {
+    title: '₿ Price Oracle',
+    coins: [
+      { name: 'Bitcoin', sym: '₿', price: 68420.50 + Math.random()*500 },
+      { name: 'Ethereum', sym: 'Ξ', price: 3840.20 + Math.random()*50 },
+      { name: 'Solana', sym: '◎', price: 182.40 + Math.random()*5 },
+    ],
+    reward: 0.001,
+  },
+  quiz: {
+    title: '🧠 Quiz Blitz',
+    questions: [
+      { q: 'What does BTC stand for?', a: 'Bitcoin', opts: ['ByteCoin', 'Bitcoin', 'BitToken', 'BlockChain'] },
+      { q: 'Who created Bitcoin?', a: 'Satoshi Nakamoto', opts: ['Vitalik Buterin', 'Elon Musk', 'Satoshi Nakamoto', 'Jeff Bezos'] },
+      { q: 'What is the max supply of Bitcoin?', a: '21 million', opts: ['18 million', '21 million', '100 million', 'Unlimited'] },
+    ],
+    reward: 0.005,
+    currentQ: 0,
+    score: 0,
+  },
+  portfolio: {
+    title: '🚀 Moonshot',
+    reward: 0.05,
+  }
+};
+
+function openGame(id) {
+  currentGame = id;
+  const overlay = document.getElementById('gameOverlay');
+  overlay.classList.add('open');
+  document.getElementById('gameTitle').textContent = games[id].title;
+  renderGame(id);
+}
+
+function closeGame() {
+  document.getElementById('gameOverlay').classList.remove('open');
+  clearInterval(gameTimerInterval);
+  currentGame = null;
+}
+
+function renderGame(id) {
+  const body = document.getElementById('gameBody');
+  if (id === 'priceGuess') renderPriceGame(body);
+  else if (id === 'quiz') renderQuizGame(body);
+  else renderPortfolioGame(body);
+}
+
+function renderPriceGame(body) {
+  const g = games.priceGuess;
+  const coin = g.coins[Math.floor(Math.random() * g.coins.length)];
+  gameTimeLeft = 60;
+  clearInterval(gameTimerInterval);
+  gameTimerInterval = setInterval(() => {
+    gameTimeLeft--;
+    const el = document.getElementById('gameTimer');
+    if (el) el.textContent = gameTimeLeft + 's';
+    if (el) el.style.color = gameTimeLeft < 10 ? 'var(--red)' : 'var(--accent)';
+    if (gameTimeLeft <= 0) { clearInterval(gameTimerInterval); autoResult(body); }
+  }, 1000);
+
+  body.innerHTML = `
+    <div class="price-display">
+      <div class="price-coin">${coin.sym}</div>
+      <div class="price-name">${coin.name}</div>
+      <div class="price-current">$${coin.price.toFixed(2)}</div>
+      <div class="price-question">Will the price be higher or lower in 60 seconds?</div>
+    </div>
+    <div class="guess-btns">
+      <div class="guess-btn up" onclick="makeGuess('up', ${coin.price})">
+        📈
+        <span class="guess-btn-label">Higher</span>
+      </div>
+      <div class="guess-btn down" onclick="makeGuess('down', ${coin.price})">
+        📉
+        <span class="guess-btn-label">Lower</span>
+      </div>
+    </div>
+    <div class="result-display" id="priceResult"></div>
+  `;
+}
+
+function makeGuess(dir, originalPrice) {
+  clearInterval(gameTimerInterval);
+  document.getElementById('gameTimer').textContent = '✓';
+  const btns = document.querySelectorAll('.guess-btn');
+  btns.forEach(b => { b.style.pointerEvents = 'none'; b.style.opacity = '0.5'; });
+
+  // Simulate result after 2s
+  setTimeout(() => {
+    const change = (Math.random() - 0.48) * originalPrice * 0.002;
+    const newPrice = originalPrice + change;
+    const actualDir = change > 0 ? 'up' : 'down';
+    const won = dir === actualDir;
+    showResult(won, newPrice, originalPrice);
+  }, 2000);
+}
+
+function autoResult(body) {
+  showResult(false, 0, 0, true);
+}
+
+function showResult(won, newPrice, oldPrice, timeout = false) {
+  const reward = games.priceGuess.reward;
+  const resultEl = document.getElementById('priceResult');
+  if (!resultEl) return;
+
+  if (won) {
+    state.balance += reward;
+    state.sessionEarned += reward;
+    localStorage.setItem('balance', state.balance);
+    updateUI();
+  }
+
+  resultEl.className = 'result-display show';
+  resultEl.innerHTML = timeout
+    ? `<div class="result-icon">⏰</div><div class="result-text">TIME'S UP!</div><div class="result-reward">No guess made</div>`
+    : won
+      ? `<div class="result-icon">🎉</div><div class="result-text" style="color:var(--green)">CORRECT!</div>
+         <div class="result-reward">+${reward} BTC earned!</div>
+         <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Price: $${oldPrice.toFixed(2)} → $${newPrice.toFixed(2)}</div>`
+      : `<div class="result-icon">😔</div><div class="result-text" style="color:var(--red)">WRONG!</div>
+         <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Price: $${oldPrice.toFixed(2)} → $${newPrice.toFixed(2)}</div>`;
+  resultEl.innerHTML += `<button class="btn-play" onclick="renderPriceGame(document.getElementById('gameBody'))">Play Again</button>`;
+}
+
+function renderQuizGame(body) {
+  const g = games.quiz;
+  g.currentQ = 0; g.score = 0;
+  gameTimeLeft = 10;
+  showQuestion(body, g);
+}
+
+function showQuestion(body, g) {
+  if (g.currentQ >= g.questions.length) {
+    const won = g.score >= 2;
+    if (won) { state.balance += g.reward; state.sessionEarned += g.reward; localStorage.setItem('balance', state.balance); updateUI(); }
+    body.innerHTML = `
+      <div style="text-align:center; padding: 20px 0;">
+        <div class="result-icon">${won ? '🏆' : '📚'}</div>
+        <div class="result-text" style="color:${won?'var(--accent3)':'var(--muted)'}">Score: ${g.score}/${g.questions.length}</div>
+        <div class="result-reward">${won ? `+${g.reward} ETH earned!` : 'Keep learning!'}</div>
+        <button class="btn-play" onclick="renderQuizGame(document.getElementById('gameBody'))">Try Again</button>
+      </div>`;
+    clearInterval(gameTimerInterval); return;
+  }
+
+  const q = g.questions[g.currentQ];
+  gameTimeLeft = 10;
+  clearInterval(gameTimerInterval);
+  gameTimerInterval = setInterval(() => {
+    gameTimeLeft--;
+    const el = document.getElementById('gameTimer');
+    if (el) el.textContent = gameTimeLeft + 's';
+    if (el) el.style.color = gameTimeLeft < 4 ? 'var(--red)' : 'var(--accent)';
+    if (gameTimeLeft <= 0) { clearInterval(gameTimerInterval); g.currentQ++; showQuestion(body, g); }
+  }, 1000);
+
+  const shuffled = [...q.opts].sort(() => Math.random() - 0.5);
+  body.innerHTML = `
+    <div style="text-align:center; margin-bottom:20px">
+      <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:8px">Question ${g.currentQ+1} of ${g.questions.length}</div>
+      <div style="font-weight:700; font-size:15px; line-height:1.4">${q.q}</div>
+    </div>
+    <div style="display:grid; gap:10px">
+      ${shuffled.map(opt => `
+        <button onclick="answerQ(this, '${opt}', '${q.a}')"
+          style="padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text);font-size:14px;font-weight:600;transition:all 0.2s;text-align:left">
+          ${opt}
+        </button>`).join('')}
+    </div>`;
+}
+
+function answerQ(btn, chosen, correct) {
+  clearInterval(gameTimerInterval);
+  document.querySelectorAll('.game-body button').forEach(b => b.style.pointerEvents = 'none');
+  const g = games.quiz;
+  if (chosen === correct) {
+    btn.style.background = 'rgba(0,212,170,0.2)';
+    btn.style.borderColor = 'var(--green)';
+    g.score++;
+  } else {
+    btn.style.background = 'rgba(255,71,87,0.2)';
+    btn.style.borderColor = 'var(--red)';
+  }
+  g.currentQ++;
+  setTimeout(() => showQuestion(document.getElementById('gameBody'), g), 1000);
+}
+
+function renderPortfolioGame(body) {
+  const coins = [
+    { name: 'BTC', change: '+2.4%', up: true },
+    { name: 'ETH', change: '-1.1%', up: false },
+    { name: 'SOL', change: '+8.7%', up: true },
+    { name: 'BNB', change: '+0.3%', up: true },
+    { name: 'DOGE', change: '-3.2%', up: false },
+  ];
+  body.innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Allocate $1,000 across assets. Best ROI in 24h wins!</div>
+    <div style="display:grid; gap:8px; margin-bottom:16px">
+      ${coins.map(c => `
+        <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px">
+          <div style="font-weight:700;width:40px">${c.name}</div>
+          <div style="flex:1">
+            <input type="range" min="0" max="100" value="20" style="width:100%;accent-color:var(--accent)">
+          </div>
+          <div style="font-family:'Space Mono',monospace;font-size:12px;color:${c.up?'var(--green)':'var(--red)'}">${c.change}</div>
+        </div>`).join('')}
+    </div>
+    <button class="btn-play" onclick="submitPortfolio()">🚀 Submit Portfolio</button>`;
+}
+
+function submitPortfolio() {
+  const body = document.getElementById('gameBody');
+  body.innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div class="result-icon">🚀</div>
+      <div class="result-text">Portfolio Submitted!</div>
+      <div style="font-size:13px;color:var(--muted);margin:8px 0 20px">Results in 24 hours. Good luck!</div>
+      <button class="btn-play" onclick="closeGame()">Back to Games</button>
+    </div>`;
+}
+
+// ── Copy referral ──
+function copyRef() {
+  const link = document.getElementById('refLink').textContent;
+  navigator.clipboard?.writeText(link).catch(() => {});
+  showToast('📋 Referral link copied!');
+}
+
+// ── Buy Stars (stub) ──
+function buyStars(amount) {
+  if (tg?.openInvoice) {
+    showToast(`⭐ Opening Stars purchase…`);
+    // tg.openInvoice(invoiceLink);  // wire up your real payment link
+  } else {
+    showToast(`⭐ ${amount} Stars — payment coming soon!`);
+  }
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+updateUI();
+</script>
+</body>
+</html>
