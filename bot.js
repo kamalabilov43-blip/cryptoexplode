@@ -76,8 +76,8 @@ app.post(WEBHOOK_PATH, async (req, res) => {
     } else if (text === '/learn' || text === '/обучение') {
       await sendMessage(chatId, '📚 <b>Обучение</b>\n\nПройди уроки и зарабатывай крипту!\n\n• Что такое Bitcoin?\n• Ethereum и смарт-контракты\n• Кошельки и ключи', { reply_markup: openAppButton() });
     } else if (text === '/appss_verify') {
-  await sendMessage(chatId, 'appss_833ec9');
-  return;
+      await sendMessage(chatId, 'appss_833ec9');
+      return;
     } else if (text === '/balance' || text === '/баланс') {
       await sendMessage(chatId, `💰 <b>Баланс</b>\n\nBTC: <b>${user.balance.toFixed(6)}</b>\nРефералы: 👥 <b>${user.refs.length}</b>`, { reply_markup: openAppButton() });
     } else {
